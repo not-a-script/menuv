@@ -433,6 +433,17 @@ div .hide,
     font-weight: 800;
 }
 
+.menuv.default .menuv-items .menuv-right-label {
+    float: right;
+    font-size: 0.85em;
+    opacity: 0.75;
+    margin-left: 0.5em;
+}
+
+.menuv.default .menuv-items .menuv-item.active .menuv-right-label {
+    opacity: 1;
+}
+
 .menuv.default .menuv-pagination {
     padding: 0.5em;
     max-width: 20em;

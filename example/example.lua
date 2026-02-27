@@ -75,6 +75,21 @@ menu6:On('select', function(m, item)
     end
 end)
 
+--- Right Label demo menu
+local menu7 = MenuV:CreateMenu('Weapon Shop', 'Buy Weapons', 'topleft', 255, 150, 0, 'size-125')
+local menu7_button = menu:AddButton({ icon = '🏷️', label = 'Open Right Label Demo', value = menu7, description = 'Opens a menu with right-side labels (prices, badges)' })
+menu7:AddButton({ icon = '🔫', label = 'Pistol', rightLabel = '$500', description = 'A standard pistol' })
+menu7:AddButton({ icon = '🔫', label = 'Carbine Rifle', rightLabel = '$2,500', description = 'An assault rifle' })
+menu7:AddButton({ icon = '🔫', label = 'Pump Shotgun', rightLabel = '$1,200', description = 'A pump-action shotgun' })
+menu7:AddButton({ icon = '🔫', label = 'RPG', rightLabel = '~r~SOLD OUT', description = 'A rocket launcher' })
+menu7:AddCheckbox({ icon = '🛡️', label = 'Body Armor', rightLabel = '$300', value = false })
+menu7:AddSlider({ icon = '💊', label = 'Medkits', rightLabel = '$50 each', value = 1, values = {
+    { label = '1x', value = 1, description = 'Buy 1 medkit' },
+    { label = '5x', value = 5, description = 'Buy 5 medkits' },
+    { label = '10x', value = 10, description = 'Buy 10 medkits' }
+}})
+menu7:AddButton({ icon = '🔙', label = 'Back', value = menu, description = 'Go back to main menu' })
+
 --- Events
 confirm:On('confirm', function(item) print('YOU ACCEPTED THE TERMS') end)
 confirm:On('deny', function(item) print('YOU DENIED THE TERMS') end)

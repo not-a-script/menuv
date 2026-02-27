@@ -122,6 +122,7 @@
         </div>
         <div class="media-content flex-left item-title" v-html="FORMAT_TEXT(item.label)"></div>
         <div class="media-right">
+          <span class="menuv-right-label" v-if="ENSURE(item.rightLabel, '') != ''" v-html="FORMAT_TEXT(item.rightLabel)"></span>
           <i class="fas fa-arrow-right" v-if="item.type == 'menu'"></i>
           <i v-if="item.type == 'checkbox'" :class="{'fas fa-check': item.value, 'far fa-square': !item.value}"></i>
           <input type="range" :min="item.min" :max="item.max" :value="(item.value)" v-if="item.type == 'range'">

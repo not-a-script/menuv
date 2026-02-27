@@ -46,6 +46,7 @@ export interface Item {
     icon: string;
     label: string;
     description: string;
+    rightLabel: string;
     value: any;
     prev_value: any;
     values: Option[];
@@ -355,6 +356,7 @@ export default VUE.extend({
                     this.items[i].icon = item.icon || this.items[i].icon;
                     this.items[i].label = item.label || this.items[i].label;
                     this.items[i].description = item.description || this.items[i].description;
+                    this.items[i].rightLabel = item.rightLabel ?? this.items[i].rightLabel;
                     this.items[i].value = item.value || this.items[i].value;
                     this.items[i].values = item.values || this.items[i].values;
                     this.items[i].min = item.min || this.items[i].min;

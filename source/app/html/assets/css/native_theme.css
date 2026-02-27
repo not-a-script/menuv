@@ -452,6 +452,18 @@ div .hide,
     font-weight: 800;
 }
 
+.menuv.native .menuv-items .menuv-right-label {
+    float: right;
+    font-size: 0.85em;
+    font-family: 'TTCommons';
+    opacity: 0.75;
+    margin-left: 0.5em;
+}
+
+.menuv.native .menuv-items .menuv-item.active .menuv-right-label {
+    opacity: 1;
+}
+
 .menuv.native .menuv-pagination {
     padding: 0.5em;
     max-width: 20em;

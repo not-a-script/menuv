@@ -44,6 +44,8 @@ function CreateMenuItem(info)
         Label = U:Ensure(info.Label or info.label, ''),
         ---@type string
         Description = U:Ensure(info.Description or info.description, ''),
+        ---@type string
+        RightLabel = U:Ensure(info.RightLabel or info.rightLabel, ''),
         ---@type any
         Value = info.Value or info.value,
         ---@type table[]
@@ -252,6 +254,7 @@ function CreateMenuItem(info)
     ---@field public Icon string Icon/Emoji for Item
     ---@field public Label string Label of Item
     ---@field public Description string Description of Item
+    ---@field public RightLabel string Right-side label text
     ---@field public Value any Value of Item
     ---@field public Values table[] List of values
     ---@field public Min number Min range value
