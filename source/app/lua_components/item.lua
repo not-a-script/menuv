@@ -54,6 +54,8 @@ function CreateMenuItem(info)
         Max = U:Ensure(info.Max or info.max, 0),
         ---@type boolean
         Disabled = U:Ensure(info.Disabled or info.disabled, false),
+        ---@type boolean
+        Hidden = U:Ensure(info.Hidden or info.hidden, false),
         ---@type table
         Events = U:Ensure(info.Events or info.events, {}),
         ---@type boolean

@@ -9,12 +9,21 @@ local confirm = menu:AddConfirm({ icon = '🔥', label = 'Confirm', value = 'no'
 local range = menu:AddRange({ icon = '⚽', label = 'Range Item', min = 0, max = 10, value = 0, saveOnUpdate = true })
 local checkbox = menu:AddCheckbox({ icon = '💡', label = 'Checkbox Item', value = 'n' })
 local checkbox_disabled = menu:AddCheckbox({ icon = '💡', label = 'Checkbox Disabled', value = 'n', disabled = true })
+local hidden_button = menu:AddButton({ icon = '👻', label = 'Hidden Button', description = 'You should not see this', hidden = true })
+local toggle_hidden = menu:AddButton({ icon = '👁️', label = 'Toggle Hidden Item', description = 'Show/hide the hidden button above' })
 local slider = menu:AddSlider({ icon = '❤️', label = 'Slider', value = 'demo', values = {
     { label = 'Demo Item', value = 'demo', description = 'Demo Item 1' },
     { label = 'Demo Item 2', value = 'demo2', description = 'Demo Item 2' },
     { label = 'Demo Item 3', value = 'demo3', description = 'Demo Item 3' },
     { label = 'Demo Item 4', value = 'demo4', description = 'Demo Item 4' }
 }})
+
+--- Font Size demo menu
+local menu3 = MenuV:CreateMenu('Big Font', 'Font Size Demo', 'topleft', 0, 200, 100, 'size-125')
+menu3.FontSize = '1.4em'
+local menu3_button = menu:AddButton({ icon = '🔤', label = 'Open Font Size Demo', value = menu3, description = 'Opens a menu with a larger font size' })
+menu3:AddButton({ icon = '📏', label = 'Large Text Item', description = 'This text is displayed at 1.4em' })
+menu3:AddButton({ icon = '🔙', label = 'Back', value = menu, description = 'Go back to main menu' })
 
 --- Events
 confirm:On('confirm', function(item) print('YOU ACCEPTED THE TERMS') end)
@@ -29,6 +38,11 @@ slider:On('select', function(item, value) print(('YOU SELECTED %s'):format(value
 
 confirm:On('enter', function(item) print('YOU HAVE NOW A CONFIRM ACTIVE') end)
 confirm:On('leave', function(item) print('YOU LEFT OUR CONFIRM :(') end)
+
+toggle_hidden:On('select', function(item)
+    hidden_button.Hidden = not hidden_button.Hidden
+    print(('Hidden button is now %s'):format(hidden_button.Hidden and 'hidden' or 'visible'))
+end)
 
 menu:On('switch', function(item, currentItem, prevItem) print(('YOU HAVE SWITCH THE ITEMS FROM %s TO %s'):format(prevItem.__type, currentItem.__type)) end)
 

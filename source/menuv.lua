@@ -294,6 +294,8 @@ function MenuV:OpenMenu(menu, cb, reopen)
             SEND_NUI_MESSAGE({ action = 'REMOVE_ITEM', uuid = v.UUID, __uuid = m.UUID })
         elseif (k == 'UpdateItem' or k == 'updateitem' and Utilities:Typeof(v) == 'Item') then
             SEND_NUI_MESSAGE({ action = 'UPDATE_ITEM', item = m.Items:ItemToTable(v) or {}, __uuid = m.UUID })
+        elseif (k == 'FontSize' or k == 'fontSize') then
+            SEND_NUI_MESSAGE({ action = 'UPDATE_FONT_SIZE', fontSize = Utilities:Ensure(v, ''), __uuid = m.UUID })
         end
     end)
 

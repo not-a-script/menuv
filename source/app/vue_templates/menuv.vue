@@ -100,8 +100,8 @@
       <strong v-html="FORMAT_TEXT(title)"></strong>
     </header>
     <nav class="menuv-subheader" v-html="FORMAT_TEXT(subtitle)"></nav>
-    <ul class="menuv-items" ref="items">
-      <li class="menuv-item media" v-for="item in items" :key="item.uuid" :class="[{'active': (index + 1) == item.index, 'hasIcon': ENSURE(item.icon, 'none') != 'none', 'disabled': item.disabled }, (`menuv-${item.type}`)]" :index="(item.index - 1)">
+    <ul class="menuv-items" ref="items" :style="fontSize ? { fontSize: fontSize } : {}">
+      <li class="menuv-item media" v-for="item in items" :key="item.uuid" v-show="!item.hidden" :class="[{'active': (index + 1) == item.index, 'hasIcon': ENSURE(item.icon, 'none') != 'none', 'disabled': item.disabled }, (`menuv-${item.type}`)]" :index="(item.index - 1)">
         <div class="media-left item-icon" v-if="ENSURE(item.icon, 'none') != 'none'">
           <span class="menuv-icon">{{ENSURE(item.icon, 'none')}}</span>
         </div>

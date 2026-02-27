@@ -58,7 +58,8 @@ function CreateEmptyItemsTable(data)
                 values = {},
                 min = U:Ensure(option.Min, 0),
                 max = U:Ensure(option.Max, 0),
-                disabled = U:Ensure(option.Disabled, false)
+                disabled = U:Ensure(option.Disabled, false),
+                hidden = U:Ensure(option.Hidden, false)
             }
 
             if (option.__type == 'button' or option.__type == 'menu') then
@@ -119,7 +120,8 @@ function CreateEmptyItemsTable(data)
                     values = {},
                     min = U:Ensure(option.Min, 0),
                     max = U:Ensure(option.Max, 0),
-                    disabled = U:Ensure(option.Disabled, false)
+                    disabled = U:Ensure(option.Disabled, false),
+                    hidden = U:Ensure(option.Hidden, false)
                 }
 
                 if (option.__type == 'button' or option.__type == 'menu') then
@@ -317,6 +319,8 @@ function CreateMenu(info)
         },
         ---@type string | "'size-100'" | "'size-110'" | "'size-125'" | "'size-150'" | "'size-175'" | "'size-200'"
         Size = U:Ensure(info.Size or info.size, 'size-110'),
+        ---@type string
+        FontSize = U:Ensure(info.FontSize or info.fontSize, ''),
         ---@type string
         Dictionary = U:Ensure(info.Dictionary or info.dictionary, 'menuv'),
         ---@type string
@@ -907,6 +911,7 @@ function CreateMenu(info)
                 subtitle = U:Ensure(t.Subtitle, ''),
                 position = U:Ensure(t.Position, 'topleft'),
                 size = U:Ensure(t.Size, 'size-110'),
+                fontSize = U:Ensure(t.FontSize, ''),
                 dictionary = U:Ensure(t.Dictionary, 'menuv'),
                 texture = U:Ensure(t.Texture, 'default'),
                 color = {
@@ -962,7 +967,7 @@ function CreateMenu(info)
             MenuV:OpenMenu(t)
         end,
         __newindex = function(t, k, v)
-            local whitelisted = { 'Title', 'Subtitle', 'Position', 'Color', 'R', 'G', 'B', 'Size', 'Dictionary', 'Texture', 'Theme' }
+            local whitelisted = { 'Title', 'Subtitle', 'Position', 'Color', 'R', 'G', 'B', 'Size', 'FontSize', 'Dictionary', 'Texture', 'Theme' }
             local key = U:Ensure(k, 'unknown')
             local oldValue = rawget(t.data, k)
 

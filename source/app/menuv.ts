@@ -52,6 +52,7 @@ export interface Item {
     min: number;
     max: number;
     disabled: boolean;
+    hidden: boolean;
 }
 
 export interface Menu {
@@ -63,6 +64,7 @@ export interface Menu {
     subtitle: string;
     position: 'topleft' | 'topcenter' | 'topright' | 'centerleft' | 'center' | 'centerright' | 'bottomleft' | 'bottomcenter' | 'bottomright';
     size: 'size-100' | 'size-110' | 'size-125' | 'size-150' | 'size-175' | 'size-200';
+    fontSize: string;
     color: {
         r: number,
         g: number,
@@ -106,7 +108,8 @@ export default VUE.extend({
             _pendingItems: [] as Array<{ item: Item, index?: number, __uuid: string }>,
             _flushScheduled: false,
             _scrollRafId: 0,
-            _formatTextCache: {} as Record<string, string>
+            _formatTextCache: {} as Record<string, string>,
+            fontSize: ''
         }
     },
     destroyed() {
@@ -118,7 +121,7 @@ export default VUE.extend({
             
             if (!data || !data.action) { return; }
 
-            const typeRef = data.action as 'UPDATE_STATUS' | 'OPEN_MENU' | 'CLOSE_MENU' | 'UPDATE_TITLE' | 'UPDATE_SUBTITLE' | 'KEY_PRESSED' | 'RESOURCE_STOPPED' | 'UPDATE_ITEMS' | 'UPDATE_ITEM' | 'REFRESH_MENU' | 'ADD_ITEM' | 'REMOVE_ITEM'
+            const typeRef = data.action as 'UPDATE_STATUS' | 'OPEN_MENU' | 'CLOSE_MENU' | 'UPDATE_TITLE' | 'UPDATE_SUBTITLE' | 'UPDATE_FONT_SIZE' | 'KEY_PRESSED' | 'RESOURCE_STOPPED' | 'UPDATE_ITEMS' | 'UPDATE_ITEM' | 'REFRESH_MENU' | 'ADD_ITEM' | 'REMOVE_ITEM'
         
             if (this[typeRef]) {
                 this[typeRef](data);
@@ -206,6 +209,7 @@ export default VUE.extend({
             this.subtitle = this.ENSURE(menu.subtitle, this.subtitle);
             this.position = this.ENSURE(menu.position, 'topleft');
             this.size = this.ENSURE(menu.size, 'size-110');
+            this.fontSize = this.ENSURE(menu.fontSize, '');
             this.texture = this.ENSURE(menu.texture, 'none');
             this.dictionary = this.ENSURE(menu.dictionary, 'none');
             this.color = menu.color || this.color;
@@ -247,6 +251,7 @@ export default VUE.extend({
             this.subtitle = this.ENSURE(menu.subtitle, this.subtitle);
             this.position = this.ENSURE(menu.position, 'topleft');
             this.size = this.ENSURE(menu.size, 'size-110');
+            this.fontSize = this.ENSURE(menu.fontSize, '');
             this.texture = this.ENSURE(menu.texture, 'none');
             this.dictionary = this.ENSURE(menu.dictionary, 'none');
             this.color = menu.color || this.color;
@@ -290,6 +295,11 @@ export default VUE.extend({
 
             this.subtitle = subtitle || this.subtitle;
         },
+        UPDATE_FONT_SIZE({ fontSize, __uuid }: { fontSize: string, __uuid: string }) {
+            if (__uuid != this.uuid) { return; }
+
+            this.fontSize = fontSize;
+        },
         UPDATE_ITEMS({ items, __uuid }: { items: Item[], __uuid: string }) {
             if (__uuid != this.uuid) { return; }
 
@@ -319,8 +329,9 @@ export default VUE.extend({
                     this.items[i].min = item.min || this.items[i].min;
                     this.items[i].max = item.max || this.items[i].max;
                     this.items[i].disabled = item.disabled || this.items[i].disabled;
+                    this.items[i].hidden = item.hidden || this.items[i].hidden;
 
-                    if ((this.index == i && this.items[i].disabled) || (this.index < 0 && !this.items[i].disabled)) {
+                    if ((this.index == i && (this.items[i].disabled || this.items[i].hidden)) || (this.index < 0 && !this.items[i].disabled && !this.items[i].hidden)) {
                         this.index = this.NEXT_INDEX(this.index);
                     }
 
@@ -448,6 +459,7 @@ export default VUE.extend({
             this.subtitle = '';
             this.position = 'topleft';
             this.size = 'size-110';
+            this.fontSize = '';
             this.texture = 'none';
             this.dictionary = 'none';
             this.color.r = 0;
@@ -784,7 +796,7 @@ export default VUE.extend({
 
             while (newIndex < -1) {
                 if ((idx + 1 + index) < this.items.length) {
-                    if (!this.items[(idx + 1 + index)].disabled) {
+                    if (!this.items[(idx + 1 + index)].disabled && !this.items[(idx + 1 + index)].hidden) {
                         newIndex = (idx + 1 + index);
                     } else {
                         index++;
@@ -795,7 +807,7 @@ export default VUE.extend({
                     const addIndex = (idx + 1 + index) - this.items.length;
 
                     if (addIndex < this.items.length) {
-                        if (!this.items[addIndex].disabled) {
+                        if (!this.items[addIndex].disabled && !this.items[addIndex].hidden) {
                             newIndex = addIndex;
                         } else {
                             index++;
@@ -820,7 +832,7 @@ export default VUE.extend({
 
             while (newIndex < -1) {
                 if ((idx - 1 - index) >= 0) {
-                    if (!this.items[(idx - 1 - index)].disabled) {
+                    if (!this.items[(idx - 1 - index)].disabled && !this.items[(idx - 1 - index)].hidden) {
                         newIndex = (idx - 1 - index);
                     } else {
                         index++;
@@ -831,7 +843,7 @@ export default VUE.extend({
                     const addIndex = (idx - 1 - index) + this.items.length;
 
                     if (addIndex < this.items.length && addIndex >= 0) {
-                        if (!this.items[addIndex].disabled) {
+                        if (!this.items[addIndex].disabled && !this.items[addIndex].hidden) {
                             newIndex = addIndex;
                         } else {
                             index++;
