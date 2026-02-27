@@ -272,6 +272,8 @@ export default VUE.extend({
 
             this.index = -1;
             this.index = prevIndex;
+            this.cached_indexes[this.uuid] = prevIndex;
+            this.POST(`https://menuv/opened`, { uuid: this.uuid, r: this.resource });
         },
         CLOSE_MENU({ uuid }: { uuid: string }) {
             if (this.uuid == uuid) {

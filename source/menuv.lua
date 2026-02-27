@@ -311,6 +311,11 @@ function MenuV:Refresh()
         return
     end
 
+    self.CurrentItemIndex = {}
+    for k, v in pairs(self.CurrentMenu.Items) do
+        self.CurrentItemIndex[v.UUID] = k
+    end
+
     SEND_NUI_MESSAGE({
         action = 'REFRESH_MENU',
         menu = self.CurrentMenu:ToTable()
