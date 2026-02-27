@@ -50,10 +50,16 @@ local menuv_table = {
     Loaded = false,
     ---@type Menu[]
     Menus = {},
+    ---@type table<string, Menu>
+    MenusByUUID = {},
     ---@type Menu[]
     ParentMenus = {},
     ---@type table<string, function>
     NUICallbacks = {},
+    ---@type table<string, number>
+    CurrentItemIndex = {},
+    ---@type table<string, boolean>
+    UsedNamespaces = {},
     ---@type table<string, string>
     Translations = translations,
     ---@class keys
@@ -163,6 +169,10 @@ function MenuV:CreateMenu(title, subtitle, position, r, g, b, size, texture, dic
     local index = #(self.Menus or {}) + 1
 
     insert(self.Menus, index, menu)
+    self.MenusByUUID[menu.UUID] = menu
+
+    local ns = lower(Utilities:Ensure(menu.Namespace, 'unknown'))
+    if ns ~= 'unknown' then self.UsedNamespaces[ns] = true end
 
     return self.Menus[index] or menu
 end
@@ -199,6 +209,10 @@ function MenuV:InheritMenu(parent, overrides, namespace)
     local index = #(self.Menus or {}) + 1
 
     insert(self.Menus, index, menu)
+    self.MenusByUUID[menu.UUID] = menu
+
+    local ns = lower(Utilities:Ensure(menu.Namespace, 'unknown'))
+    if ns ~= 'unknown' then self.UsedNamespaces[ns] = true end
 
     return self.Menus[index] or menu
 end
@@ -209,13 +223,7 @@ end
 function MenuV:GetMenu(uuid)
     uuid = Utilities:Ensure(uuid, '00000000-0000-0000-0000-000000000000')
 
-    for _, v in pairs(self.Menus) do
-        if (v.UUID == uuid) then
-            return v
-        end
-    end
-
-    return nil
+    return self.MenusByUUID[uuid] or nil
 end
 
 --- Open a menu
@@ -257,6 +265,12 @@ function MenuV:OpenMenu(menu, cb, reopen)
     end
 
     self.CurrentMenu = menu
+
+    self.CurrentItemIndex = {}
+    for k, v in pairs(menu.Items) do
+        self.CurrentItemIndex[v.UUID] = k
+    end
+
     self.CurrentUpdateUUID = menu:On('update', function(m, k, v)
         k = Utilities:Ensure(k, 'unknown')
 
@@ -265,12 +279,18 @@ function MenuV:OpenMenu(menu, cb, reopen)
         elseif (k == 'Subtitle' or k == 'subtitle') then
             SEND_NUI_MESSAGE({ action = 'UPDATE_SUBTITLE', subtitle = Utilities:Ensure(v, ''), __uuid = m.UUID })
         elseif (k == 'Items' or k == 'items') then
+            MenuV.CurrentItemIndex = {}
+            for ik, iv in pairs(m.Items) do
+                MenuV.CurrentItemIndex[iv.UUID] = ik
+            end
             SEND_NUI_MESSAGE({ action = 'UPDATE_ITEMS', items = (m.Items:ToTable() or {}), __uuid = m.UUID })
         elseif (k == 'Item' or k == 'item' and Utilities:Typeof(v) == 'Item') then
             SEND_NUI_MESSAGE({ action = 'UPDATE_ITEM', item = m.Items:ItemToTable(v) or {}, __uuid = m.UUID })
         elseif (k == 'AddItem' or k == 'additem' and Utilities:Typeof(v) == 'Item') then
+            MenuV.CurrentItemIndex[v.UUID] = #m.Items
             SEND_NUI_MESSAGE({ action = 'ADD_ITEM', item = m.Items:ItemToTable(v), __uuid = m.UUID })
         elseif (k == 'RemoveItem' or k == 'removeitem' and Utilities:Typeof(v) == 'Item') then
+            MenuV.CurrentItemIndex[v.UUID] = nil
             SEND_NUI_MESSAGE({ action = 'REMOVE_ITEM', uuid = v.UUID, __uuid = m.UUID })
         elseif (k == 'UpdateItem' or k == 'updateitem' and Utilities:Typeof(v) == 'Item') then
             SEND_NUI_MESSAGE({ action = 'UPDATE_ITEM', item = m.Items:ItemToTable(v) or {}, __uuid = m.UUID })
@@ -421,16 +441,7 @@ function MenuV:IsNamespaceAvailable(namespace)
 
     if (namespace == 'unknown') then return true end
 
-    ---@param v Menu
-    for k, v in pairs(self.Menus or {}) do
-        local v_namespace = Utilities:Ensure(v.Namespace, 'unknown')
-
-        if (namespace == lower(v_namespace)) then
-            return false
-        end
-    end
-
-    return true
+    return not self.UsedNamespaces[namespace]
 end
 
 
@@ -488,32 +499,32 @@ REGISTER_NUI_CALLBACK('submit', function(info, cb)
 
     if (MenuV.CurrentMenu == nil) then return end
 
-    for k, v in pairs(MenuV.CurrentMenu.Items) do
-        if (v.UUID == uuid) then
-            if (v.__type == 'confirm' or v.__type == 'checkbox') then
-                v.Value = Utilities:Ensure(info.value, false)
-            elseif (v.__type == 'range') then
-                v.Value = Utilities:Ensure(info.value, v.Min)
-            elseif (v.__type == 'slider') then
-                v.Value = Utilities:Ensure(info.value, 0) + 1
-            end
+    local k = MenuV.CurrentItemIndex[uuid]
+    if (k == nil) then return end
 
-            MenuV.CurrentMenu:Trigger('select', v)
+    local v = MenuV.CurrentMenu.Items[k]
+    if (v == nil) then return end
 
-            if (v.__type == 'button' or v.__type == 'menu') then
-                MenuV.CurrentMenu.Items[k]:Trigger('select')
-            elseif (v.__type == 'range') then
-                MenuV.CurrentMenu.Items[k]:Trigger('select', v.Value)
-            elseif (v.__type == 'slider') then
-                local option = MenuV.CurrentMenu.Items[k].Values[v.Value] or nil
+    if (v.__type == 'confirm' or v.__type == 'checkbox') then
+        v.Value = Utilities:Ensure(info.value, false)
+    elseif (v.__type == 'range') then
+        v.Value = Utilities:Ensure(info.value, v.Min)
+    elseif (v.__type == 'slider') then
+        v.Value = Utilities:Ensure(info.value, 0) + 1
+    end
 
-                if (option == nil) then return end
+    MenuV.CurrentMenu:Trigger('select', v)
 
-                MenuV.CurrentMenu.Items[k]:Trigger('select', option.Value)
-            end
+    if (v.__type == 'button' or v.__type == 'menu') then
+        MenuV.CurrentMenu.Items[k]:Trigger('select')
+    elseif (v.__type == 'range') then
+        MenuV.CurrentMenu.Items[k]:Trigger('select', v.Value)
+    elseif (v.__type == 'slider') then
+        local option = MenuV.CurrentMenu.Items[k].Values[v.Value] or nil
 
-            return
-        end
+        if (option == nil) then return end
+
+        MenuV.CurrentMenu.Items[k]:Trigger('select', option.Value)
     end
 end)
 
@@ -573,18 +584,16 @@ REGISTER_NUI_CALLBACK('switch', function(info, cb)
 
     if (MenuV.CurrentMenu == nil) then return end
 
-    for k, v in pairs(MenuV.CurrentMenu.Items) do
-        if (v.UUID == prev_uuid) then
-            prev_item = v
+    local prev_k = MenuV.CurrentItemIndex[prev_uuid]
+    if (prev_k) then
+        prev_item = MenuV.CurrentMenu.Items[prev_k]
+        if (prev_item) then MenuV.CurrentMenu.Items[prev_k]:Trigger('leave') end
+    end
 
-            MenuV.CurrentMenu.Items[k]:Trigger('leave')
-        end
-
-        if (v.UUID == next_uuid) then
-            next_item = v
-
-            MenuV.CurrentMenu.Items[k]:Trigger('enter')
-        end
+    local next_k = MenuV.CurrentItemIndex[next_uuid]
+    if (next_k) then
+        next_item = MenuV.CurrentMenu.Items[next_k]
+        if (next_item) then MenuV.CurrentMenu.Items[next_k]:Trigger('enter') end
     end
 
     if (prev_item ~= nil and next_item ~= nil) then
@@ -599,40 +608,41 @@ REGISTER_NUI_CALLBACK('update', function(info, cb)
 
     if (MenuV.CurrentMenu == nil) then return end
 
-    for k, v in pairs(MenuV.CurrentMenu.Items) do
-        if (v.UUID == uuid) then
-            local newValue, oldValue = nil, nil
+    local k = MenuV.CurrentItemIndex[uuid]
+    if (not k) then return end
 
-            if (v.__type == 'confirm' or v.__type == 'checkbox') then
-                newValue = Utilities:Ensure(info.now, false)
-                oldValue = Utilities:Ensure(info.prev, false)
-            elseif (v.__type == 'range') then
-                newValue = Utilities:Ensure(info.now, v.Min)
-                oldValue = Utilities:Ensure(info.prev, v.Min)
-            elseif (v.__type == 'slider') then
-                newValue = Utilities:Ensure(info.now, 0) + 1
-                oldValue = Utilities:Ensure(info.prev, 0) + 1
-            end
+    local v = MenuV.CurrentMenu.Items[k]
+    if (not v) then return end
 
-            if (Utilities:Any(v.__type, { 'button', 'menu', 'label' }, 'value')) then return end
+    local newValue, oldValue = nil, nil
 
-            MenuV.CurrentMenu:Trigger('update', v, newValue, oldValue)
-            MenuV.CurrentMenu.Items[k]:Trigger('change', newValue, oldValue)
+    if (v.__type == 'confirm' or v.__type == 'checkbox') then
+        newValue = Utilities:Ensure(info.now, false)
+        oldValue = Utilities:Ensure(info.prev, false)
+    elseif (v.__type == 'range') then
+        newValue = Utilities:Ensure(info.now, v.Min)
+        oldValue = Utilities:Ensure(info.prev, v.Min)
+    elseif (v.__type == 'slider') then
+        newValue = Utilities:Ensure(info.now, 0) + 1
+        oldValue = Utilities:Ensure(info.prev, 0) + 1
+    end
 
-            if (v.SaveOnUpdate) then
-                MenuV.CurrentMenu.Items[k].Value = newValue
+    if (Utilities:Any(v.__type, { 'button', 'menu', 'label' }, 'value')) then return end
 
-                if (v.__type == 'range') then
-                    MenuV.CurrentMenu.Items[k]:Trigger('select', v.Value)
-                elseif (v.__type == 'slider') then
-                    local option = MenuV.CurrentMenu.Items[k].Values[v.Value] or nil
+    MenuV.CurrentMenu:Trigger('update', v, newValue, oldValue)
+    MenuV.CurrentMenu.Items[k]:Trigger('change', newValue, oldValue)
 
-                    if (option == nil) then return end
+    if (v.SaveOnUpdate) then
+        MenuV.CurrentMenu.Items[k].Value = newValue
 
-                    MenuV.CurrentMenu.Items[k]:Trigger('select', option.Value)
-                end
-            end
-            return
+        if (v.__type == 'range') then
+            MenuV.CurrentMenu.Items[k]:Trigger('select', v.Value)
+        elseif (v.__type == 'slider') then
+            local option = MenuV.CurrentMenu.Items[k].Values[v.Value] or nil
+
+            if (option == nil) then return end
+
+            MenuV.CurrentMenu.Items[k]:Trigger('select', option.Value)
         end
     end
 end)

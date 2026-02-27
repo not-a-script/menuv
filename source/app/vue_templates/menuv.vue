@@ -123,8 +123,8 @@
         </div>
       </li>
     </ul>
-    <footer class="menuv-description" :class="{'hide': IS_DEFAULT(GET_CURRENT_DESCRIPTION())}">
-      <strong v-html="GET_CURRENT_DESCRIPTION()"></strong>
+    <footer class="menuv-description" :class="{'hide': IS_DEFAULT(currentDescription)}">
+      <strong v-html="currentDescription"></strong>
     </footer>
   </div>
 </template>

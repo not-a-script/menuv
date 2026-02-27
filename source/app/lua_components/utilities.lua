@@ -26,6 +26,8 @@ local setmetatable = assert(setmetatable)
 local GET_GAME_TIMER = assert(GetGameTimer)
 local GET_CURRENT_RESOURCE_NAME = assert(GetCurrentResourceName)
 
+randomseed(GET_GAME_TIMER())
+
 --- Utilities for MenuV
 ---@class Utilities
 local Utilities = setmetatable({ __class = 'Utilities' }, {})
@@ -372,8 +374,6 @@ end
 --- Generates a random UUID like: 00000000-0000-0000-0000-000000000000
 ---@return string Random generated UUID
 function Utilities:UUID()
-    randomseed(GET_GAME_TIMER() + random(30720, 92160))
-
     ---@type number[]
     local bytes = {
         random(0, 255),
@@ -414,13 +414,12 @@ end
 ---@param that string Replace `this` whit given string
 ---@return string String where `this` has been replaced with `that`
 function Utilities:Replace(str, this, that)
-    local b, e = str:find(this, 1, true)
-
-    if b == nil then
-        return str
-    else
-        return str:sub(1, b - 1) .. that .. self:Replace(str:sub(e + 1), this, that)
-    end
+    str = self:Ensure(str, '')
+    this = self:Ensure(this, '')
+    that = self:Ensure(that, '')
+    if this == '' then return str end
+    local escaped = this:gsub('[%(%)%.%%%+%-%*%?%[%]%^%$]', '%%%1')
+    return (str:gsub(escaped, that))
 end
 
 _G.Utilities = Utilities

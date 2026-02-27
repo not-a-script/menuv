@@ -105,7 +105,8 @@ export default VUE.extend({
             cached_indexes: {} as Record<string, number>,
             _pendingItems: [] as Array<{ item: Item, index?: number, __uuid: string }>,
             _flushScheduled: false,
-            _scrollRafId: 0
+            _scrollRafId: 0,
+            _formatTextCache: {} as Record<string, string>
         }
     },
     destroyed() {
@@ -129,15 +130,6 @@ export default VUE.extend({
         this.POST('https://menuv/loaded', {});
     },
     watch: {
-        theme() {},
-        title() {},
-        subtitle() {},
-        position() {},
-        color() {},
-        options() {},
-        menu() {},
-        show() {},
-        size() {},
         index(newValue, oldValue) {
             let prev_uuid = null;
             let next_uuid = null;
@@ -190,7 +182,15 @@ export default VUE.extend({
             this.$scrollTo(`li[index="${this.index}"]`, 0, {});
         });
     },
-    computed: {},
+    computed: {
+        currentDescription(): string {
+            const index = this.index || 0;
+            if (index >= 0 && index < this.items.length) {
+                return this.FORMAT_TEXT(this.NL2BR(this.ENSURE(this.items[index].description, ''), true, false));
+            }
+            return '';
+        }
+    },
     methods: {
         UPDATE_STATUS({ status }: { status: boolean }) {
             if (this.menu) { this.show = status; }
@@ -433,6 +433,7 @@ export default VUE.extend({
             // Cancel any pending batched items
             this._pendingItems = [];
             this._flushScheduled = false;
+            this._formatTextCache = {};
 
             this.theme = 'default'
             this.resource = 'menuv';
@@ -766,7 +767,6 @@ export default VUE.extend({
             var request = new XMLHttpRequest();
 
             request.open('POST', url, true);
-            request.open('POST', url, true);
             request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
             request.send(JSON.stringify(data));
         },
@@ -850,6 +850,12 @@ export default VUE.extend({
         },
         FORMAT_TEXT: function(text: string) {
             text = this.ENSURE(text, '');
+            if (!text) return '';
+
+            const cached = this._formatTextCache[text];
+            if (cached !== undefined) return cached;
+
+            const original = text;
 
             text = text.replace(/\^0/g, '<span style="color: black !important;">');
             text = text.replace(/\^1/g, '<span style="color: red !important;">');
@@ -874,10 +880,14 @@ export default VUE.extend({
             text = text.replace(/~s~/g, '<span style="color: white !important;">');
             text = text.replace(/~h~/g, '<strong>');
 
-            const d = new DOMParser();
-            const domObj = d.parseFromString(text || "", "text/html");
-            
-            return domObj.body.innerHTML;
+            if (text !== original) {
+                const d = new DOMParser();
+                const domObj = d.parseFromString(text || "", "text/html");
+                text = domObj.body.innerHTML;
+            }
+
+            this._formatTextCache[original] = text;
+            return text;
         }
     }
 });

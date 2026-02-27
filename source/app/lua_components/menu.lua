@@ -39,6 +39,7 @@ local current_resource = GET_CURRENT_RESOURCE_NAME()
 ---@returns items
 function CreateEmptyItemsTable(data)
     data = U:Ensure(data, {})
+    data._itemCount = 0
     data.ToTable = function(t)
         local tempTable = {}
         local index = 0
@@ -164,9 +165,11 @@ function CreateEmptyItemsTable(data)
     end
     data.AddItem = function(t, item)
         if (U:Typeof(item) == 'Item') then
-            local newIndex = #(U:Ensure(rawget(t, 'data'), {})) + 1
+            local count = rawget(t, '_itemCount') or 0
+            local newIndex = count + 1
 
             rawset(t.data, newIndex, item)
+            rawset(t, '_itemCount', newIndex)
 
             if (t.Trigger ~= nil and type(t.Trigger) == 'function') then
                 t:Trigger('update', 'AddItem', item)
@@ -209,6 +212,15 @@ function CreateEmptyItemsTable(data)
 
             rawset(t.data, k, v)
 
+            if (type(k) == 'number') then
+                local count = rawget(t, '_itemCount') or 0
+                if (oldValue == nil and v ~= nil) then
+                    rawset(t, '_itemCount', count + 1)
+                elseif (oldValue ~= nil and v == nil) then
+                    rawset(t, '_itemCount', count > 0 and count - 1 or 0)
+                end
+            end
+
             if (t.Trigger ~= nil and type(t.Trigger) == 'function') then
                 if (oldValue == nil) then
                     t:Trigger('update', 'AddItem', v)
@@ -245,16 +257,7 @@ function CreateEmptyItemsTable(data)
             end, t, 0
         end,
         __len = function(t)
-            local items = U:Ensure(rawget(t, 'data'), {})
-            local itemCount = 0
-
-            for _, v in pairs(items) do
-                if (U:Typeof(v) == 'Item') then
-                    itemCount = itemCount + 1
-                end
-            end
-
-            return itemCount
+            return rawget(t, '_itemCount') or 0
         end
     })
 end
@@ -347,10 +350,10 @@ function CreateMenu(info)
 
             for _, v in pairs(t.Events[event]) do
                 if (type(v) == 'table' and U:Typeof(v.func) == 'function') then
-                    CreateThread(function()
-                        if (event == 'OnClose') then
-                            v.func(t, unpack(args))
-                        else
+                    if (event == 'OnClose') then
+                        CreateThread(function() v.func(t, unpack(args)) end)
+                    elseif (event == 'OnOpen') then
+                        CreateThread(function()
                             local threadId = coroutine.running()
 
                             if (threadId ~= nil) then
@@ -365,8 +368,10 @@ function CreateMenu(info)
                                     end
                                 end
                             end
-                        end
-                    end)
+                        end)
+                    else
+                        v.func(t, unpack(args))
+                    end
                 end
             end
         end,
