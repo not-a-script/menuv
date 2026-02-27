@@ -55,6 +55,24 @@ export interface Item {
     hidden: boolean;
 }
 
+export interface ColorOverride {
+    r: number;
+    g: number;
+    b: number;
+}
+
+export interface MenuColors {
+    headerBackground?: ColorOverride;
+    subheaderBackground?: ColorOverride;
+    itemsBackground?: ColorOverride;
+    itemText?: ColorOverride;
+    activeItemBackground?: ColorOverride;
+    activeItemText?: ColorOverride;
+    descriptionBackground?: ColorOverride;
+    descriptionBorder?: ColorOverride;
+    disabledItemBackground?: ColorOverride;
+}
+
 export interface Menu {
     hidden: boolean;
     theme: 'default' | 'native';
@@ -65,11 +83,13 @@ export interface Menu {
     position: 'topleft' | 'topcenter' | 'topright' | 'centerleft' | 'center' | 'centerright' | 'bottomleft' | 'bottomcenter' | 'bottomright';
     size: 'size-100' | 'size-110' | 'size-125' | 'size-150' | 'size-175' | 'size-200';
     fontSize: string;
+    itemHeight: string;
     color: {
         r: number,
         g: number,
         b: number
     };
+    colors: MenuColors;
     items: Item[];
     texture: string;
     dictionary: string;
@@ -109,7 +129,9 @@ export default VUE.extend({
             _flushScheduled: false,
             _scrollRafId: 0,
             _formatTextCache: {} as Record<string, string>,
-            fontSize: ''
+            fontSize: '',
+            itemHeight: '',
+            colors: {} as MenuColors
         }
     },
     destroyed() {
@@ -121,7 +143,7 @@ export default VUE.extend({
             
             if (!data || !data.action) { return; }
 
-            const typeRef = data.action as 'UPDATE_STATUS' | 'OPEN_MENU' | 'CLOSE_MENU' | 'UPDATE_TITLE' | 'UPDATE_SUBTITLE' | 'UPDATE_FONT_SIZE' | 'KEY_PRESSED' | 'RESOURCE_STOPPED' | 'UPDATE_ITEMS' | 'UPDATE_ITEM' | 'REFRESH_MENU' | 'ADD_ITEM' | 'REMOVE_ITEM'
+            const typeRef = data.action as 'UPDATE_STATUS' | 'OPEN_MENU' | 'CLOSE_MENU' | 'UPDATE_TITLE' | 'UPDATE_SUBTITLE' | 'UPDATE_FONT_SIZE' | 'UPDATE_ITEM_HEIGHT' | 'KEY_PRESSED' | 'RESOURCE_STOPPED' | 'UPDATE_ITEMS' | 'UPDATE_ITEM' | 'REFRESH_MENU' | 'ADD_ITEM' | 'REMOVE_ITEM'
         
             if (this[typeRef]) {
                 this[typeRef](data);
@@ -210,9 +232,11 @@ export default VUE.extend({
             this.position = this.ENSURE(menu.position, 'topleft');
             this.size = this.ENSURE(menu.size, 'size-110');
             this.fontSize = this.ENSURE(menu.fontSize, '');
+            this.itemHeight = this.ENSURE(menu.itemHeight, '');
             this.texture = this.ENSURE(menu.texture, 'none');
             this.dictionary = this.ENSURE(menu.dictionary, 'none');
             this.color = menu.color || this.color;
+            this.colors = menu.colors || {};
             this.sounds = menu.defaultSounds || this.sounds;
             this.show = !(menu.hidden || false);
             this.menu = true;
@@ -252,9 +276,11 @@ export default VUE.extend({
             this.position = this.ENSURE(menu.position, 'topleft');
             this.size = this.ENSURE(menu.size, 'size-110');
             this.fontSize = this.ENSURE(menu.fontSize, '');
+            this.itemHeight = this.ENSURE(menu.itemHeight, '');
             this.texture = this.ENSURE(menu.texture, 'none');
             this.dictionary = this.ENSURE(menu.dictionary, 'none');
             this.color = menu.color || this.color;
+            this.colors = menu.colors || {};
             this.sounds = menu.defaultSounds || this.sounds;
             this.show = !(menu.hidden || false);
             this.menu = true;
@@ -299,6 +325,11 @@ export default VUE.extend({
             if (__uuid != this.uuid) { return; }
 
             this.fontSize = fontSize;
+        },
+        UPDATE_ITEM_HEIGHT({ itemHeight, __uuid }: { itemHeight: string, __uuid: string }) {
+            if (__uuid != this.uuid) { return; }
+
+            this.itemHeight = itemHeight;
         },
         UPDATE_ITEMS({ items, __uuid }: { items: Item[], __uuid: string }) {
             if (__uuid != this.uuid) { return; }
@@ -460,11 +491,13 @@ export default VUE.extend({
             this.position = 'topleft';
             this.size = 'size-110';
             this.fontSize = '';
+            this.itemHeight = '';
             this.texture = 'none';
             this.dictionary = 'none';
             this.color.r = 0;
             this.color.g = 0;
             this.color.b = 255;
+            this.colors = {};
             this.items = [];
             this.sounds['UP'] = { type: 'custom', name: 'unknown', library: 'unknown' } as Sounds;
             this.sounds['DOWN'] = { type: 'custom', name: 'unknown', library: 'unknown' } as Sounds;
@@ -549,6 +582,14 @@ export default VUE.extend({
             }
 
             return `rgba(255, 255, 255, ${o})`;
+        },
+        RGB: function(c: ColorOverride | undefined, fallback: string): string {
+            if (!c) return fallback;
+            return `rgb(${c.r},${c.g},${c.b})`;
+        },
+        RGBA: function(c: ColorOverride | undefined, alpha: number, fallback: string): string {
+            if (!c) return fallback;
+            return `rgba(${c.r},${c.g},${c.b},${alpha})`;
         },
         IS_DEFAULT: function(input: any): boolean {
             if (typeof input == 'string') {

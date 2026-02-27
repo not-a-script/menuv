@@ -203,6 +203,8 @@ function MenuV:InheritMenu(parent, overrides, namespace)
         Size = Utilities:Ensure(overrides.size or overrides.Size, parentMenu.Size),
         Texture = Utilities:Ensure(overrides.texture or overrides.Texture, parentMenu.Texture),
         Dictionary = Utilities:Ensure(overrides.dictionary or overrides.Dictionary, parentMenu.Dictionary),
+        ItemHeight = Utilities:Ensure(overrides.itemHeight or overrides.ItemHeight, parentMenu.ItemHeight),
+        Colors = Utilities:Ensure(overrides.colors or overrides.Colors, parentMenu.Colors),
         Namespace = Utilities:Ensure(namespace, 'unknown')
     })
 
@@ -296,6 +298,10 @@ function MenuV:OpenMenu(menu, cb, reopen)
             SEND_NUI_MESSAGE({ action = 'UPDATE_ITEM', item = m.Items:ItemToTable(v) or {}, __uuid = m.UUID })
         elseif (k == 'FontSize' or k == 'fontSize') then
             SEND_NUI_MESSAGE({ action = 'UPDATE_FONT_SIZE', fontSize = Utilities:Ensure(v, ''), __uuid = m.UUID })
+        elseif (k == 'ItemHeight' or k == 'itemHeight') then
+            SEND_NUI_MESSAGE({ action = 'UPDATE_ITEM_HEIGHT', itemHeight = Utilities:Ensure(v, ''), __uuid = m.UUID })
+        elseif (k == 'Colors' or k == 'colors') then
+            MenuV:Refresh()
         end
     end)
 

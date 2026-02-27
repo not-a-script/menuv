@@ -317,16 +317,22 @@ function CreateMenu(info)
             G = U:Ensure(info.G or info.g, 0),
             B = U:Ensure(info.B or info.b, 255)
         },
+        ---@type table
+        Colors = U:Ensure(info.Colors or info.colors, {}),
         ---@type string | "'size-100'" | "'size-110'" | "'size-125'" | "'size-150'" | "'size-175'" | "'size-200'"
         Size = U:Ensure(info.Size or info.size, 'size-110'),
         ---@type string
         FontSize = U:Ensure(info.FontSize or info.fontSize, ''),
+        ---@type string
+        ItemHeight = U:Ensure(info.ItemHeight or info.itemHeight, ''),
         ---@type string
         Dictionary = U:Ensure(info.Dictionary or info.dictionary, 'menuv'),
         ---@type string
         Texture = U:Ensure(info.Texture or info.texture, 'default'),
         ---@type table
         Events = U:Ensure(info.Events or info.events, {}),
+        ---@type table
+        Data = U:Ensure(info.Data or info.data, {}),
         ---@type string
         Theme = theme,
         ---@type Item[]
@@ -912,6 +918,7 @@ function CreateMenu(info)
                 position = U:Ensure(t.Position, 'topleft'),
                 size = U:Ensure(t.Size, 'size-110'),
                 fontSize = U:Ensure(t.FontSize, ''),
+                itemHeight = U:Ensure(t.ItemHeight, ''),
                 dictionary = U:Ensure(t.Dictionary, 'menuv'),
                 texture = U:Ensure(t.Texture, 'default'),
                 color = {
@@ -921,6 +928,33 @@ function CreateMenu(info)
                 },
                 items = {}
             }
+
+            local rawColors = U:Ensure(t.Colors, {})
+            local colorsTable = {}
+            local colorKeyMap = {
+                HeaderBackground = 'headerBackground',
+                SubheaderBackground = 'subheaderBackground',
+                ItemsBackground = 'itemsBackground',
+                ItemText = 'itemText',
+                ActiveItemBackground = 'activeItemBackground',
+                ActiveItemText = 'activeItemText',
+                DescriptionBackground = 'descriptionBackground',
+                DescriptionBorder = 'descriptionBorder',
+                DisabledItemBackground = 'disabledItemBackground'
+            }
+
+            for luaKey, nuiKey in pairs(colorKeyMap) do
+                local c = rawColors[luaKey]
+                if (c ~= nil and type(c) == 'table') then
+                    colorsTable[nuiKey] = {
+                        r = U:Ensure(c.R or c.r, 0),
+                        g = U:Ensure(c.G or c.g, 0),
+                        b = U:Ensure(c.B or c.b, 0)
+                    }
+                end
+            end
+
+            tempTable.colors = colorsTable
 
             local items = rawget(t.data, 'Items')
 
@@ -967,7 +1001,7 @@ function CreateMenu(info)
             MenuV:OpenMenu(t)
         end,
         __newindex = function(t, k, v)
-            local whitelisted = { 'Title', 'Subtitle', 'Position', 'Color', 'R', 'G', 'B', 'Size', 'FontSize', 'Dictionary', 'Texture', 'Theme' }
+            local whitelisted = { 'Title', 'Subtitle', 'Position', 'Color', 'R', 'G', 'B', 'Size', 'FontSize', 'Dictionary', 'Texture', 'Theme', 'Data', 'ItemHeight', 'Colors' }
             local key = U:Ensure(k, 'unknown')
             local oldValue = rawget(t.data, k)
 
@@ -1045,6 +1079,9 @@ function CreateMenu(info)
     ---@field public Texture string Name of texture example: "default"
     ---@field public Dictionary string Name of dictionary example: "menuv"
     ---@field public Color table<string, number> Color of Menu
+    ---@field public Data table Arbitrary custom data storage
+    ---@field public ItemHeight string CSS item height value
+    ---@field public Colors table Per-element color overrides
     ---@field private Events table<string, fun[]> List of registered `on` events
     ---@field public Items Item[] List of items
     ---@field public Trigger fun(t: Item, event: string)

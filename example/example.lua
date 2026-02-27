@@ -25,6 +25,56 @@ local menu3_button = menu:AddButton({ icon = '🔤', label = 'Open Font Size Dem
 menu3:AddButton({ icon = '📏', label = 'Large Text Item', description = 'This text is displayed at 1.4em' })
 menu3:AddButton({ icon = '🔙', label = 'Back', value = menu, description = 'Go back to main menu' })
 
+--- Item Height demo menu
+local menu4 = MenuV:CreateMenu('Tall Items', 'Item Height Demo', 'topleft', 0, 150, 200, 'size-125')
+menu4.ItemHeight = '3.5em'
+local menu4_button = menu:AddButton({ icon = '📐', label = 'Open Item Height Demo', value = menu4, description = 'Opens a menu with taller items' })
+menu4:AddButton({ icon = '📏', label = 'Tall Item 1', description = 'This item has a height of 3.5em' })
+menu4:AddButton({ icon = '📏', label = 'Tall Item 2', description = 'Another tall item' })
+menu4:AddCheckbox({ icon = '💡', label = 'Tall Checkbox', value = false })
+menu4:AddRange({ icon = '⚽', label = 'Tall Range', min = 0, max = 10, value = 5 })
+menu4:AddButton({ icon = '🔙', label = 'Back', value = menu, description = 'Go back to main menu' })
+
+--- Custom Colors demo menu
+local menu5 = MenuV:CreateMenu('Custom Colors', 'Colors Demo', 'topleft', 0, 0, 255, 'size-125')
+menu5.Colors = {
+    HeaderBackground = { R = 40, G = 0, B = 60 },
+    SubheaderBackground = { R = 120, G = 0, B = 180 },
+    ItemsBackground = { R = 20, G = 10, B = 30 },
+    ItemText = { R = 220, G = 200, B = 255 },
+    ActiveItemBackground = { R = 180, G = 50, B = 255 },
+    ActiveItemText = { R = 255, G = 255, B = 255 },
+    DescriptionBackground = { R = 30, G = 15, B = 45 },
+    DescriptionBorder = { R = 180, G = 50, B = 255 },
+    DisabledItemBackground = { R = 50, G = 30, B = 70 }
+}
+local menu5_button = menu:AddButton({ icon = '🎨', label = 'Open Colors Demo', value = menu5, description = 'Opens a menu with custom colors' })
+menu5:AddButton({ icon = '🟣', label = 'Purple Theme Item', description = 'All colors are customized in this menu' })
+menu5:AddCheckbox({ icon = '💜', label = 'Purple Checkbox', value = true })
+menu5:AddConfirm({ icon = '🔮', label = 'Purple Confirm', value = 'no' })
+menu5:AddCheckbox({ icon = '🚫', label = 'Disabled Item', value = false, disabled = true })
+menu5:AddButton({ icon = '🔙', label = 'Back', value = menu, description = 'Go back to main menu' })
+
+--- Custom Data demo menu
+local menu6 = MenuV:CreateMenu('Data Storage', 'Custom Data Demo', 'topleft', 50, 200, 50, 'size-125')
+menu6.Data = { shopId = 'weapon_shop_1', category = 'weapons' }
+local menu6_button = menu:AddButton({ icon = '💾', label = 'Open Data Demo', value = menu6, description = 'Opens a menu demonstrating custom data storage' })
+local data_pistol = menu6:AddButton({ icon = '🔫', label = 'Pistol', description = 'Price: $500', Data = { weaponHash = 'WEAPON_PISTOL', price = 500 } })
+local data_rifle = menu6:AddButton({ icon = '🔫', label = 'Rifle', description = 'Price: $2500', Data = { weaponHash = 'WEAPON_CARBINERIFLE', price = 2500 } })
+local data_shotgun = menu6:AddButton({ icon = '🔫', label = 'Shotgun', description = 'Price: $1200', Data = { weaponHash = 'WEAPON_PUMPSHOTGUN', price = 1200 } })
+menu6:AddButton({ icon = '🔙', label = 'Back', value = menu, description = 'Go back to main menu' })
+
+menu6:On('select', function(m, item)
+    if item.Data and item.Data.price then
+        print(('Shop: %s | Buying %s for $%d (hash: %s)'):format(
+            m.Data.shopId,
+            item.Label,
+            item.Data.price,
+            item.Data.weaponHash
+        ))
+    end
+end)
+
 --- Events
 confirm:On('confirm', function(item) print('YOU ACCEPTED THE TERMS') end)
 confirm:On('deny', function(item) print('YOU DENIED THE TERMS') end)

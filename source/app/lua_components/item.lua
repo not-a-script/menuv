@@ -60,6 +60,8 @@ function CreateMenuItem(info)
         Events = U:Ensure(info.Events or info.events, {}),
         ---@type boolean
         SaveOnUpdate = U:Ensure(info.SaveOnUpdate or info.saveOnUpdate, false),
+        ---@type table
+        Data = U:Ensure(info.Data or info.data, {}),
         ---@param t Item
         ---@param event string Name of Event
         Trigger = function(t, event, ...)
@@ -201,6 +203,12 @@ function CreateMenuItem(info)
         end,
         __newindex = function(t, k, v)
             local key = U:Ensure(k, 'unknown')
+
+            if (key == 'Data') then
+                rawset(t.data, k, v)
+                return
+            end
+
             local oldValue = rawget(t.data, k)
             local checkInput = t.Validate ~= nil and type(t.Validate) == 'function'
             local inputParser = t.Parser ~= nil and type(t.Parser) == 'function'
@@ -250,6 +258,7 @@ function CreateMenuItem(info)
     ---@field public Max number Max range value
     ---@field public Disabled boolean Disabled state of Item
     ---@field public SaveOnUpdate boolean Save on `update`
+    ---@field public Data table Arbitrary custom data storage
     ---@field private Events table<string, function[]> List of registered `on` events
     ---@field public Trigger fun(t: Item, event: string)
     ---@field public On fun(t: Item, event: string, func: function|Menu)

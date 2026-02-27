@@ -20,6 +20,7 @@
       .menuv.{{theme}} .menuv-header {
         background: url("https://nui-img/{{dictionary}}/{{texture}}") no-repeat;
         background-size: 100%;
+        background-color: {{RGB(colors.headerBackground, 'black')}};
       }
 
       .menuv.{{theme}} .menuv-header .menuv-bg-icon i,
@@ -28,23 +29,28 @@
       }
 
       .menuv.{{theme}} .menuv-subheader {
-        background-color: rgb({{color.r}},{{color.g}},{{color.b}});
+        background-color: {{RGB(colors.subheaderBackground, 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')')}} !important;
+      }
+
+      .menuv.{{theme}} .menuv-items {
+        background-color: {{RGBA(colors.itemsBackground, 0.65, 'rgba(0,0,0,0.65)')}};
+        color: {{RGB(colors.itemText, 'white')}};
       }
 
       .menuv.{{theme}} .menuv-items .menuv-item.active {
-        border-left: 0.5em solid rgb({{color.r}},{{color.g}},{{color.b}});
-        border-right: 0.5em solid rgb({{color.r}},{{color.g}},{{color.b}});
-        background-color: rgb({{color.r}},{{color.g}},{{color.b}});
-        color: {{TEXT_COLOR(color.r, color.g, color.b)}};
+        border-left: 0.5em solid {{RGB(colors.activeItemBackground, 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')')}};
+        border-right: 0.5em solid {{RGB(colors.activeItemBackground, 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')')}};
+        background-color: {{RGB(colors.activeItemBackground, 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')')}};
+        color: {{colors.activeItemText ? RGB(colors.activeItemText, '') : TEXT_COLOR(color.r, color.g, color.b)}};
       }
 
       .menuv.{{theme}} .menuv-items .menuv-item.active i,
       .menuv.{{theme}} .menuv-items .menuv-item.active svg {
-        color: {{TEXT_COLOR(color.r, color.g, color.b)}};
+        color: {{colors.activeItemText ? RGB(colors.activeItemText, '') : TEXT_COLOR(color.r, color.g, color.b)}};
       }
 
       .menuv.{{theme}} .menuv-items .menuv-item.active span.menuv-icon {
-        border-right: 1px solid {{TEXT_COLOR(color.r, color.g, color.b)}};
+        border-right: 1px solid {{colors.activeItemText ? RGB(colors.activeItemText, '') : TEXT_COLOR(color.r, color.g, color.b)}};
       }
 
       .menuv.{{theme}} .menuv-items span.menuv-options span.menuv-btn {
@@ -57,8 +63,8 @@
       }
 
       .menuv.{{theme}} .menuv-items .menuv-item.active span.menuv-options span.menuv-btn {
-        background-color: rgb({{color.r}},{{color.g}},{{color.b}});
-        color: {{TEXT_COLOR(color.r, color.g, color.b)}};
+        background-color: {{RGB(colors.activeItemBackground, 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')')}};
+        color: {{colors.activeItemText ? RGB(colors.activeItemText, '') : TEXT_COLOR(color.r, color.g, color.b)}};
       }
 
       .menuv.{{theme}} .menuv-items .menuv-item.active span.menuv-options span.menuv-btn.active {
@@ -92,8 +98,17 @@
         background: rgba({{color.r}},{{color.g}},{{color.b}}, 0.50);
       }
 
+      .menuv.{{theme}} .menuv-items .menuv-item.disabled {
+        background: {{RGB(colors.disabledItemBackground, '#383838')}};
+      }
+
       .menuv.{{theme}} .menuv-items .menuv-desc {
-        border-left: 0.375em solid rgb({{color.r}},{{color.g}},{{color.b}});
+        border-left: 0.375em solid {{RGB(colors.descriptionBorder, 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')')}};
+        background-color: {{RGBA(colors.descriptionBackground, 0.65, 'rgba(0,0,0,0.65)')}};
+      }
+
+      .menuv.{{theme}} .menuv-description {
+        background-color: {{RGBA(colors.descriptionBackground, 0.65, 'rgba(0,0,0,0.65)')}};
       }
     </v-style>
     <header class="menuv-header">
@@ -101,7 +116,7 @@
     </header>
     <nav class="menuv-subheader" v-html="FORMAT_TEXT(subtitle)"></nav>
     <ul class="menuv-items" ref="items" :style="fontSize ? { fontSize: fontSize } : {}">
-      <li class="menuv-item media" v-for="item in items" :key="item.uuid" v-show="!item.hidden" :class="[{'active': (index + 1) == item.index, 'hasIcon': ENSURE(item.icon, 'none') != 'none', 'disabled': item.disabled }, (`menuv-${item.type}`)]" :index="(item.index - 1)">
+      <li class="menuv-item media" v-for="item in items" :key="item.uuid" v-show="!item.hidden" :class="[{'active': (index + 1) == item.index, 'hasIcon': ENSURE(item.icon, 'none') != 'none', 'disabled': item.disabled }, (`menuv-${item.type}`)]" :index="(item.index - 1)" :style="itemHeight ? { minHeight: itemHeight, height: itemHeight } : {}">
         <div class="media-left item-icon" v-if="ENSURE(item.icon, 'none') != 'none'">
           <span class="menuv-icon">{{ENSURE(item.icon, 'none')}}</span>
         </div>
