@@ -102,7 +102,10 @@ export default VUE.extend({
             listener: (event: MessageEvent) => {},
             index: 0,
             sounds: {} as Record<'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'ENTER' | 'CLOSE', Sounds>,
-            cached_indexes: {} as Record<string, number>
+            cached_indexes: {} as Record<string, number>,
+            _pendingItems: [] as Array<{ item: Item, index?: number, __uuid: string }>,
+            _flushScheduled: false,
+            _scrollRafId: 0
         }
     },
     destroyed() {
@@ -114,7 +117,7 @@ export default VUE.extend({
             
             if (!data || !data.action) { return; }
 
-            const typeRef = data.action as 'UPDATE_STATUS' | 'OPEN_MENU' | 'CLOSE_MENU' | 'UPDATE_TITLE' | 'UPDATE_SUBTITLE' | 'KEY_PRESSED' | 'RESOURCE_STOPPED' | 'UPDATE_ITEMS' | 'UPDATE_ITEM' | 'REFRESH_MENU'
+            const typeRef = data.action as 'UPDATE_STATUS' | 'OPEN_MENU' | 'CLOSE_MENU' | 'UPDATE_TITLE' | 'UPDATE_SUBTITLE' | 'KEY_PRESSED' | 'RESOURCE_STOPPED' | 'UPDATE_ITEMS' | 'UPDATE_ITEM' | 'REFRESH_MENU' | 'ADD_ITEM' | 'REMOVE_ITEM'
         
             if (this[typeRef]) {
                 this[typeRef](data);
@@ -177,19 +180,15 @@ export default VUE.extend({
     updated: function() {
         if (this.index < 0) { return; }
 
-        const el = document.getElementsByTagName('li');
-
-        for (var i = 0; i < el.length; i++) {
-            const index = el[i].getAttribute('index')
-
-            if (index === null) { continue; }
-
-            const idx = parseInt(index);
-
-            if (idx == this.index) {
-                this.$scrollTo(`li[index="${this.index}"]`, 0, {});
-            }
+        if (this._scrollRafId) {
+            cancelAnimationFrame(this._scrollRafId);
         }
+
+        this._scrollRafId = requestAnimationFrame(() => {
+            this._scrollRafId = 0;
+            if (this.index < 0) { return; }
+            this.$scrollTo(`li[index="${this.index}"]`, 0, {});
+        });
     },
     computed: {},
     methods: {
@@ -328,8 +327,7 @@ export default VUE.extend({
         ADD_ITEM({ item, index, __uuid }: { item: Item, index?: number, __uuid: string }) {
             if (__uuid != this.uuid) { return; }
 
-            item.prev_value = item.value;
-
+            // If the item already exists in the rendered list, update it immediately
             for (var i = 0; i < this.items.length; i++) {
                 if (this.items[i].uuid == item.uuid) {
                     this.UPDATE_ITEM({ item: item, __uuid: __uuid });
@@ -337,25 +335,80 @@ export default VUE.extend({
                 }
             }
 
-            const _items = this.items;
-
-            if (typeof index == 'undefined' || index == null || index < 0 || index >= _items.length) {
-                _items.push(item);
-            } else {
-                _items.splice(index, 0, item);
+            // If the item is already in the pending queue, replace it
+            for (var i = 0; i < this._pendingItems.length; i++) {
+                if (this._pendingItems[i].item.uuid == item.uuid) {
+                    this._pendingItems[i] = { item, index, __uuid };
+                    return;
+                }
             }
 
+            // Queue the item for batched insertion
+            this._pendingItems.push({ item, index, __uuid });
+
+            // Schedule a flush if one isn't already scheduled
+            if (!this._flushScheduled) {
+                this._flushScheduled = true;
+                setTimeout(() => { this._flushPendingItems(); }, 0);
+            }
+        },
+        _flushPendingItems() {
+            this._flushScheduled = false;
+
+            const pending = this._pendingItems;
+            this._pendingItems = [];
+
+            if (pending.length === 0) { return; }
+
+            const _items = this.items;
+            let needsIndexUpdate = false;
+
+            for (var p = 0; p < pending.length; p++) {
+                const { item, index } = pending[p];
+                item.prev_value = item.value;
+
+                // Final duplicate check against items already in the array
+                let isDuplicate = false;
+                for (var i = 0; i < _items.length; i++) {
+                    if (_items[i].uuid == item.uuid) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+                if (isDuplicate) { continue; }
+
+                if (typeof index == 'undefined' || index == null || index < 0 || index >= _items.length) {
+                    _items.push(item);
+                } else {
+                    _items.splice(index, 0, item);
+                }
+
+                if (this.index < 0 && !item.disabled) {
+                    needsIndexUpdate = true;
+                }
+            }
+
+            // Single sort after all items are added
             this.items = _items.sort((item1, item2) => {
                 if (item1.index > item2.index) { return 1; }
                 if (item1.index < item2.index) { return -1; }
-
                 return 0;
             });
 
-            if (this.index < 0 && !item.disabled) { this.index = this.NEXT_INDEX(this.index); }
+            // Single index update
+            if (needsIndexUpdate) {
+                this.index = this.NEXT_INDEX(this.index);
+            }
         },
         REMOVE_ITEM({ uuid, __uuid }: { uuid: string, __uuid: string }) {
             if (__uuid != this.uuid || typeof uuid != 'string' || uuid == '') { return }
+
+            // Remove from pending queue if present (item was queued but not yet flushed)
+            for (var p = this._pendingItems.length - 1; p >= 0; p--) {
+                if (this._pendingItems[p].item.uuid == uuid) {
+                    this._pendingItems.splice(p, 1);
+                }
+            }
 
             const _items = this.items;
 
@@ -377,6 +430,10 @@ export default VUE.extend({
             });
         },
         RESET_MENU() {
+            // Cancel any pending batched items
+            this._pendingItems = [];
+            this._flushScheduled = false;
+
             this.theme = 'default'
             this.resource = 'menuv';
             this.menu = false;
