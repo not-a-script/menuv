@@ -85,6 +85,7 @@ export interface Menu {
     size: 'size-100' | 'size-110' | 'size-125' | 'size-150' | 'size-175' | 'size-200';
     fontSize: string;
     itemHeight: string;
+    customCSS: string;
     color: {
         r: number,
         g: number,
@@ -132,6 +133,7 @@ export default VUE.extend({
             _formatTextCache: {} as Record<string, string>,
             fontSize: '',
             itemHeight: '',
+            customCSS: '',
             colors: {} as MenuColors
         }
     },
@@ -234,6 +236,7 @@ export default VUE.extend({
             this.size = this.ENSURE(menu.size, 'size-110');
             this.fontSize = this.ENSURE(menu.fontSize, '');
             this.itemHeight = this.ENSURE(menu.itemHeight, '');
+            this.customCSS = this.ENSURE(menu.customCSS, '');
             this.texture = this.ENSURE(menu.texture, 'none');
             this.dictionary = this.ENSURE(menu.dictionary, 'none');
             this.color = menu.color || this.color;
@@ -278,6 +281,7 @@ export default VUE.extend({
             this.size = this.ENSURE(menu.size, 'size-110');
             this.fontSize = this.ENSURE(menu.fontSize, '');
             this.itemHeight = this.ENSURE(menu.itemHeight, '');
+            this.customCSS = this.ENSURE(menu.customCSS, '');
             this.texture = this.ENSURE(menu.texture, 'none');
             this.dictionary = this.ENSURE(menu.dictionary, 'none');
             this.color = menu.color || this.color;
@@ -494,6 +498,7 @@ export default VUE.extend({
             this.size = 'size-110';
             this.fontSize = '';
             this.itemHeight = '';
+            this.customCSS = '';
             this.texture = 'none';
             this.dictionary = 'none';
             this.color.r = 0;

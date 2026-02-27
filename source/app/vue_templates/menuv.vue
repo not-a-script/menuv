@@ -111,6 +111,9 @@
         background-color: {{RGBA(colors.descriptionBackground, 0.65, 'rgba(0,0,0,0.65)')}};
       }
     </v-style>
+    <v-style v-if="customCSS">
+      {{customCSS}}
+    </v-style>
     <header class="menuv-header">
       <strong v-html="FORMAT_TEXT(title)"></strong>
     </header>

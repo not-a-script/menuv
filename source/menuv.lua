@@ -204,6 +204,7 @@ function MenuV:InheritMenu(parent, overrides, namespace)
         Texture = Utilities:Ensure(overrides.texture or overrides.Texture, parentMenu.Texture),
         Dictionary = Utilities:Ensure(overrides.dictionary or overrides.Dictionary, parentMenu.Dictionary),
         ItemHeight = Utilities:Ensure(overrides.itemHeight or overrides.ItemHeight, parentMenu.ItemHeight),
+        CustomCSS = Utilities:Ensure(overrides.customCSS or overrides.CustomCSS, parentMenu.CustomCSS),
         Colors = Utilities:Ensure(overrides.colors or overrides.Colors, parentMenu.Colors),
         Namespace = Utilities:Ensure(namespace, 'unknown')
     })
@@ -301,6 +302,8 @@ function MenuV:OpenMenu(menu, cb, reopen)
         elseif (k == 'ItemHeight' or k == 'itemHeight') then
             SEND_NUI_MESSAGE({ action = 'UPDATE_ITEM_HEIGHT', itemHeight = Utilities:Ensure(v, ''), __uuid = m.UUID })
         elseif (k == 'Colors' or k == 'colors') then
+            MenuV:Refresh()
+        elseif (k == 'CustomCSS' or k == 'customCSS') then
             MenuV:Refresh()
         end
     end)

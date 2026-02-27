@@ -328,6 +328,8 @@ function CreateMenu(info)
         ---@type string
         ItemHeight = U:Ensure(info.ItemHeight or info.itemHeight, ''),
         ---@type string
+        CustomCSS = U:Ensure(info.CustomCSS or info.customCSS, ''),
+        ---@type string
         Dictionary = U:Ensure(info.Dictionary or info.dictionary, 'menuv'),
         ---@type string
         Texture = U:Ensure(info.Texture or info.texture, 'default'),
@@ -921,6 +923,7 @@ function CreateMenu(info)
                 size = U:Ensure(t.Size, 'size-110'),
                 fontSize = U:Ensure(t.FontSize, ''),
                 itemHeight = U:Ensure(t.ItemHeight, ''),
+                customCSS = U:Ensure(t.CustomCSS, ''),
                 dictionary = U:Ensure(t.Dictionary, 'menuv'),
                 texture = U:Ensure(t.Texture, 'default'),
                 color = {
@@ -1003,7 +1006,7 @@ function CreateMenu(info)
             MenuV:OpenMenu(t)
         end,
         __newindex = function(t, k, v)
-            local whitelisted = { 'Title', 'Subtitle', 'Position', 'Color', 'R', 'G', 'B', 'Size', 'FontSize', 'Dictionary', 'Texture', 'Theme', 'Data', 'ItemHeight', 'Colors' }
+            local whitelisted = { 'Title', 'Subtitle', 'Position', 'Color', 'R', 'G', 'B', 'Size', 'FontSize', 'Dictionary', 'Texture', 'Theme', 'Data', 'ItemHeight', 'Colors', 'CustomCSS' }
             local key = U:Ensure(k, 'unknown')
             local oldValue = rawget(t.data, k)
 
@@ -1083,6 +1086,7 @@ function CreateMenu(info)
     ---@field public Color table<string, number> Color of Menu
     ---@field public Data table Arbitrary custom data storage
     ---@field public ItemHeight string CSS item height value
+    ---@field public CustomCSS string Custom CSS rules
     ---@field public Colors table Per-element color overrides
     ---@field private Events table<string, fun[]> List of registered `on` events
     ---@field public Items Item[] List of items

@@ -90,6 +90,28 @@ menu7:AddSlider({ icon = '💊', label = 'Medkits', rightLabel = '$50 each', val
 }})
 menu7:AddButton({ icon = '🔙', label = 'Back', value = menu, description = 'Go back to main menu' })
 
+--- Custom CSS demo menu
+local menu8 = MenuV:CreateMenu('Styled Menu', 'Custom CSS Demo', 'topleft', 0, 200, 255, 'size-125')
+menu8.CustomCSS = [[
+    .menuv .menuv-header {
+        border-bottom: 3px solid rgba(0, 200, 255, 0.8);
+    }
+    .menuv .menuv-items .menuv-item {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .menuv .menuv-items .menuv-item.active {
+        text-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+    }
+    .menuv .menuv-description {
+        border-top: 2px solid rgba(0, 200, 255, 0.5);
+    }
+]]
+local menu8_button = menu:AddButton({ icon = '✨', label = 'Open Custom CSS Demo', value = menu8, description = 'Opens a menu with custom CSS rules' })
+menu8:AddButton({ icon = '🎯', label = 'Glowing Item', description = 'Active item has a text glow effect' })
+menu8:AddButton({ icon = '📋', label = 'Bordered Item', description = 'Items have subtle bottom borders' })
+menu8:AddCheckbox({ icon = '💡', label = 'Toggle Option', value = true })
+menu8:AddButton({ icon = '🔙', label = 'Back', value = menu, description = 'Go back to main menu' })
+
 --- Events
 confirm:On('confirm', function(item) print('YOU ACCEPTED THE TERMS') end)
 confirm:On('deny', function(item) print('YOU DENIED THE TERMS') end)
