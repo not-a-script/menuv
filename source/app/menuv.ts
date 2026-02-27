@@ -230,6 +230,7 @@ export default VUE.extend({
             const nextIndex = this.NEXT_INDEX(index);
             const prevIndex = this.PREV_INDEX(nextIndex);
 
+            this.index = -1;
             this.index = prevIndex;
             this.cached_indexes[this.uuid] = prevIndex;
             this.POST(`https://menuv/opened`, { uuid: this.uuid, r: this.resource });
@@ -269,6 +270,7 @@ export default VUE.extend({
             const nextIndex = this.NEXT_INDEX(current_index);
             const prevIndex = this.PREV_INDEX(nextIndex);
 
+            this.index = -1;
             this.index = prevIndex;
         },
         CLOSE_MENU({ uuid }: { uuid: string }) {
